@@ -1,0 +1,10 @@
+<script>
+let VERSES = [];
+async function loadVerses() {
+  const r = await fetch('verses.json');
+  VERSES = await r.json();
+  // then call your existing init/render function
+  // e.g., shuffleNoRepeat(); nextRandom();
+}
+loadVerses();
+</script>
