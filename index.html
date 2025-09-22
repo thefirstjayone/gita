@@ -1,10 +1,81 @@
-<script>
-let VERSES = [];
-async function loadVerses() {
-  const r = await fetch('verses.json');
-  VERSES = await r.json();
-  // then call your existing init/render function
-  // e.g., shuffleNoRepeat(); nextRandom();
-}
-loadVerses();
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Bhagavad Gita Verse</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      margin: 2em;
+      line-height: 1.5;
+      background: #fdfdf9;
+      color: #222;
+    }
+    #verse-box {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 1.5em;
+      max-width: 700px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .sa { font-size: 1.2em; margin: 0.5em 0; }
+    .tl { font-style: italic; margin: 0.5em 0; }
+    .en { margin: 0.8em 0; }
+    .src { font-size: 0.9em; color: #666; }
+    button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Random Bhagavad Gita Verse</h1>
+  <div id="verse-box">
+    <h2 id="ref">Loading…</h2>
+    <div class="sa" id="sa"></div>
+    <div class="tl" id="tl"></div>
+    <div class="en" id="en"></div>
+    <div class="src" id="src"></div>
+  </div>
+  <button onclick="nextRandom()">🎲 New Verse</button>
+
+  <script>
+    let VERSES = [];
+
+    async function loadVerses() {
+      const r = await fetch('verses.json');
+      VERSES = await r.json();
+      nextRandom();
+      // Check for hash deep link like #2-47
+      if (location.hash) {
+        const [ch,v] = location.hash.substring(1).split('-').map(Number);
+        const found = VERSES.find(x => x.ch===ch && x.v===v);
+        if (found) displayVerse(found);
+      }
+    }
+
+    function displayVerse(v) {
+      document.getElementById('ref').innerText = `Chapter ${v.ch}, Verse ${v.v}`;
+      document.getElementById('sa').innerText = v.sa || '';
+      document.getElementById('tl').innerText = v.tl || '';
+      document.getElementById('en').innerText = v.en || '';
+      document.getElementById('src').innerText = v.src ? `Source: ${v.src}` : '';
+      // Update URL hash for sharing
+      location.hash = `${v.ch}-${v.v}`;
+    }
+
+    function nextRandom() {
+      if (!VERSES.length) return;
+      const idx = Math.floor(Math.random() * VERSES.length);
+      displayVerse(VERSES[idx]);
+    }
+
+    loadVerses();
+  </script>
+</body>
+</html>
