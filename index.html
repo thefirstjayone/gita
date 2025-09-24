@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Random Gītā Verse</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: #f5f0dc;
+      background-image: radial-gradient(circle at 20% 20%, rgba(0,0,0,0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 40%, rgba(0,0,0,0.04) 0%, transparent 35%),
+                        radial-gradient(circle at 40% 80%, rgba(0,0,0,0.05) 0%, transparent 40%);
+      background-size: cover;
+      background-attachment: fixed;
+      color: #3b2f2f;
+      line-height: 1.6;
+    }
+    .wrap {max-width:900px; margin:0 auto; padding:28px;}
+    .card {
+      background: rgba(255, 255, 240, 0.9);
+      border: 1px solid #d4c7a1;
+      border-radius: 12px;
+      padding: 24px 22px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+    h1 {font-size:clamp(20px, 3.2vw, 28px); margin:0 0 8px; letter-spacing:.2px}
+    .sub {color:#5c4d3b; font-size:14px; margin-bottom:18px}
+    .meta{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 18px; justify-content:center}
+    .pill{border:1px solid #d4c7a1; color:#5c4d3b; padding:6px 10px; border-radius:999px; font-size:12px; background:#fdfaf3}
+    .sanskrit{font-size:clamp(18px, 2.8vw, 24px); line-height:1.7; margin:8px 0 10px; font-weight:bold; white-space:pre-line; text-align:center;
+      font-family: 'Noto Serif Devanagari','Kohinoor Devanagari','Mangal','Noto Sans Devanagari', Georgia, 'Times New Roman', serif;}
+    .translit{font-style:italic; color:#3e2f1c; font-size:clamp(14px, 2.4vw, 18px); line-height:1.7; white-space:pre-line; text-align:center;}
+    .meaning{margin-top:14px; font-size:clamp(15px, 2.4vw, 18px); line-height:1.75; color:#2d2112; text-align:center}
+    .src{margin-top:8px; font-size:12px; color:#5c4d3b; text-align:center}
+    .row{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; justify-content:center}
+    button{background:#fdfaf3; border:1px solid #c0b090; color:#3b2f2f; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600}
+    button:hover{background:#f5e9c9}
+    .prime{background:#e7d9b4; border-color:#bda974}
+    .muted{color:#7a6a55}
+    .footer{margin-top:22px; color:#7a6a55; font-size:12px; text-align:center}
+    .hr{height:1px; background:#d4c7a1; margin:16px 0}
+    a{color:#8b6f47; text-decoration:none}
+    a:hover{text-decoration:underline}
+    .small{font-size:12px; text-align:center}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Random Bhagavad Gītā Verse</h1>
+    <div class="sub">Shows chapter & verse, Sanskrit, transliteration, and a meaning with source credit.</div>
+
+    <div class="card" id="card">
+      <div class="meta">
+        <span class="pill" id="cv">Ch. — : V. —</span>
+        <span class="pill" id="chapterName">—</span>
+        <span class="pill" id="countPill">— / —</span>
+      </div>
+      <div class="sanskrit" id="sanskrit">Loading…</div>
+      <div class="translit" id="translit"></div>
+      <div class="meaning" id="meaning"></div>
+      <div class="src" id="source"></div>
+
+      <div class="row">
+        <button class="prime" id="btnRandom">🎲 Random</button>
+        <button id="btnPrev" class="muted">⟵ Prev</button>
+        <button id="btnNext" class="muted">Next ⟶</button>
+        <button id="btnCopy">📋 Copy</button>
+        <button id="btnShare">🔗 Share</button>
+      </div>
+
+      <div class="hr"></div>
+      <div class="small">Tip: Open with a URL like <code>#2-47</code> to deep‑link that verse.</div>
+    </div>
+
+    <div class="footer">
+      Built as a single HTML file for easy hosting (e.g., GitHub Pages). Parchment‑style design.
+    </div>
+  </div>
+
+  <script>
+  const $ = sel => document.querySelector(sel);
+  const cvEl=$('#cv'), nameEl=$('#chapterName'), saEl=$('#sanskrit'), tlEl=$('#translit'), enEl=$('#meaning'), srcEl=$('#source'), countPill=$('#countPill');
+  const btnRandom=$('#btnRandom'), btnCopy=$('#btnCopy'), btnShare=$('#btnShare'), btnPrev=$('#btnPrev'), btnNext=$('#btnNext');
+
+  let VERSES=[]; 
+  let currentIndex=-1;
+
+  const CHAPTER_NAMES={
+    1:'Arjuna-viṣāda-yoga',2:'Sāṅkhya-yoga',3:'Karma-yoga',4:'Jñāna-Karma-Sannyāsa-yoga',5:'Karma-Sannyāsa-yoga',6:'Dhyāna-yoga',
+    7:'Jñāna-Vijñāna-yoga',8:'Akṣara-Brahma-yoga',9:'Rāja-Vidyā-Rāja-Guhya-yoga',10:'Vibhūti-yoga',11:'Viśvarūpa-Darśana-yoga',
+    12:'Bhakti-yoga',13:'Kṣetra-Kṣetrajña-Vibhāga-yoga',14:'Guṇa-Trai-Vibhāga-yoga',15:'Puruṣottama-yoga',16:'Daivāsura-Sampad-Vibhāga-yoga',
+    17:'Śraddhā-Traya-Vibhāga-yoga',18:'Mokṣa-Sannyāsa-yoga'
+  };
+
+  function renderByIndex(i){
+    const it = VERSES[i];
+    if(!it) return;
+    currentIndex = i;
+    cvEl.textContent = `Ch. ${it.ch} : V. ${it.v}`;
+    nameEl.textContent = it.name || CHAPTER_NAMES[it.ch] || '—';
+    saEl.textContent = it.sa || '';
+    tlEl.textContent = it.tl || '';
+    enEl.textContent = it.en || '';
+    srcEl.textContent = 'Source: ' + (it.src || '—');
+    countPill.textContent = `${i+1} / ${VERSES.length}`;
+  }
+
+  function findIndexFromHash(){
+    const m = location.hash.match(/#(\d+)-(\d+)/);
+    if(!m) return -1;
+    const ch = +m[1], v = +m[2];
+    return VERSES.findIndex(x => x.ch===ch && x.v===v);
+  }
+
+  function getRandomDifferentIndex(){
+    if(VERSES.length <= 1) return 0;
+    let i;
+    do { i = Math.floor(Math.random() * VERSES.length); } while (i === currentIndex);
+    return i;
+  }
+
+  function prevIndex(){ return (currentIndex - 1 + VERSES.length) % VERSES.length; }
+  function nextIndex(){ return (currentIndex + 1) % VERSES.length; }
+
+  // Buttons
+  btnRandom.addEventListener('click', () => renderByIndex(getRandomDifferentIndex()));
+  btnPrev.addEventListener('click', () => renderByIndex(prevIndex()));
+  btnNext.addEventListener('click', () => renderByIndex(nextIndex()));
+
+  btnCopy.addEventListener('click', async () => {
+    const t = `${cvEl.textContent}\n${saEl.textContent}\n${tlEl.textContent}\n\n${enEl.textContent}\n(${srcEl.textContent})`;
+    try{ await navigator.clipboard.writeText(t); btnCopy.textContent = '✅ Copied'; setTimeout(()=>btnCopy.textContent='📋 Copy', 1200);}catch(e){ alert('Copy failed'); }
+  });
+
+  btnShare.addEventListener('click', async () => {
+    const it = VERSES[currentIndex];
+    const url = location.origin + location.pathname + '#' + it.ch + '-' + it.v;
+    try{
+      if(navigator.share){ await navigator.share({ title:'Gītā Verse', url }); }
+      else{ await navigator.clipboard.writeText(url); }
+      btnShare.textContent = '✅ Link ready'; setTimeout(()=>btnShare.textContent='🔗 Share', 1200);
+    }catch(e){ /* ignored */ }
+  });
+
+  async function loadVerses(){
+    try{
+      const r = await fetch('verses.json', {cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      VERSES = await r.json();
+
+      // On load: use deep link if present else random
+      const i = findIndexFromHash();
+      if(i >= 0) renderByIndex(i);
+      else renderByIndex(getRandomDifferentIndex());
+
+      // Respond to future hash changes (manual paste or navigation)
+      window.addEventListener('hashchange', () => {
+        const j = findIndexFromHash();
+        if(j >= 0) renderByIndex(j);
+      });
+    }catch(e){
+      saEl.textContent = ''; tlEl.textContent = '';
+      enEl.textContent = 'Could not load verses.json. Place it next to this file or check filename/casing.';
+      srcEl.textContent = 'Source: —';
+      console.error('Failed to load verses.json', e);
+    }
+  }
+  loadVerses();
+  </script>
+</body>
+</html>
